@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">HackRFSignalViewer</string>
+    <string name="tv_rssi_section">Signal Strength</string>
+    <string name="tv_rssi_label">RSSI: </string>
+    <string name="tv_lat_label">Lat: </string>
+    <string name="tv_long_label">Long: </string>
+    <string name="tv_lat_default">00.000000</string>
+    <string name="tv_long_default">00.000000</string>
+    <string name="bt_record">Record Data</string>
+    <string name="bt_stop">Stop</string>
+</resources>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.percent.PercentRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.cafeclimber.hackrfsignalviewer.MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        app:layout_widthPercent="30%"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_rssi_label"
+        android:text="@string/tv_rssi_label"
+        android:textSize="28sp"
+        android:padding="5dp"
+        android:gravity="end" />
+    <TextView
+        android:layout_width="wrap_content"
+        app:layout_widthPercent="70%"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_rssi"
+        android:text="@string/tv_rssi_section"
+        android:textSize="28sp"
+        android:layout_toEndOf="@+id/tv_rssi_label"
+        android:padding="5dp"
+        android:gravity="end" />
+    <TextView
+        android:id="@+id/tv_lat_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="15%"
+        android:layout_below="@id/tv_rssi"
+        android:gravity="end"
+        android:text="@string/tv_lat_label"
+        android:textSize="16sp"
+        android:padding="5dp" />
+    <TextView
+        android:id="@+id/tv_lat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="35%"
+        android:layout_below="@id/tv_rssi"
+        android:layout_toEndOf="@id/tv_lat_label"
+        android:gravity="end"
+        android:text="@string/tv_lat_default"
+        android:textSize="16sp"
+        android:padding="5dp" />
+    <TextView
+        android:id="@+id/tv_long_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="15%"
+        android:layout_below="@id/tv_rssi"
+        android:layout_toEndOf="@id/tv_lat"
+        android:gravity="end"
+        android:text="@string/tv_long_label"
+        android:textSize="16sp"
+        android:padding="5dp" />
+    <TextView
+        android:id="@+id/tv_long"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="35%"
+        android:layout_below="@+id/tv_rssi"
+        android:layout_toEndOf="@id/tv_long_label"
+        android:gravity="end"
+        android:text="@string/tv_long_default"
+        android:textSize="16sp"
+        android:padding="5dp" />
+
+    <TextView
+        android:id="@+id/tv_log"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_heightPercent="76%"
+        android:background="@color/colorLogBG"
+        android:layout_below="@id/tv_lat_label" />
+
+    <Button
+        android:id="@+id/bt_start"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="50%"
+        app:layout_heightPercent="11%"
+        android:layout_below="@id/tv_log"
+        android:onClick="start_recording"
+        android:text="@string/bt_record" />
+    <Button
+        android:id="@+id/bt_stop"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_widthPercent="50%"
+        app:layout_heightPercent="11%"
+        android:layout_below="@id/tv_log"
+        android:layout_toEndOf="@id/bt_start"
+        android:onClick="stop_recording"
+        android:text="@string/bt_stop" />
+
+</android.support.percent.PercentRelativeLayout>
