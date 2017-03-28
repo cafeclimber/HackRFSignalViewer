@@ -8,4 +8,5 @@
     <string name="tv_long_default">00.000000</string>
     <string name="bt_record">Record Data</string>
     <string name="bt_stop">Stop</string>
+    <string name="et_frequency">Frequency</string>
 </resources>

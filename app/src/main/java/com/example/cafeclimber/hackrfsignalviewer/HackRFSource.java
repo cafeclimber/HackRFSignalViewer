@@ -76,6 +76,10 @@ public class HackRFSource implements HackrfCallbackInterface {
         return Hackrf.initHackrf(context, this, queueSize);
     }
 
+    public boolean close() {
+        return true;
+    }
+
     /**
      * Checks if HackRF is open. If null, it's not. If a usbexception occurs, it's not.
      *

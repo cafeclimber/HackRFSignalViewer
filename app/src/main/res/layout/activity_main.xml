@@ -70,13 +70,21 @@
         android:textSize="16sp"
         android:padding="5dp" />
 
+    <EditText
+        android:id="@+id/et_frequency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_lat"
+        android:hint="@string/et_frequency"
+        android:inputType="number"/>
+
     <TextView
         android:id="@+id/tv_log"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_heightPercent="76%"
+        app:layout_heightPercent="70%"
         android:background="@color/colorLogBG"
-        android:layout_below="@id/tv_lat_label" />
+        android:layout_below="@id/et_frequency" />
 
     <Button
         android:id="@+id/bt_start"

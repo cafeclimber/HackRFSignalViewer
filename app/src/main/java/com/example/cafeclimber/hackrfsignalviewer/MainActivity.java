@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,11 +32,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView tv_lat  = null;
     private TextView tv_long = null;
     private TextView tv_log  = null;
+    private EditText et_frequency = null;
     private Button   bt_start = null;
     private Button   bt_stop = null;
 
     private HackRFSource hackRFSource = null;
     private ProcessingLoop processingLoop = null;
+    private Scheduler scheduler = null;
+    private boolean running = false;
 
     private static final int MY_PERMISSIONS_ACCESS_LOCATION = 0;
 
@@ -57,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         tv_long = (TextView) findViewById(R.id.tv_long);
         tv_log  = (TextView) findViewById(R.id.tv_log);
         tv_log.setMovementMethod(new ScrollingMovementMethod());
+        et_frequency = (EditText) findViewById(R.id.et_frequency);
 
         bt_start = (Button) findViewById(R.id.bt_start);
         bt_stop = (Button) findViewById(R.id.bt_stop);
@@ -70,40 +75,89 @@ public class MainActivity extends AppCompatActivity {
 
         bt_start.setEnabled(true);
         bt_stop.setEnabled(false);
-    }
 
-    public void start_recording(View v) {
-        if (hackRFSource.open(this)) {
-            bt_start.setEnabled(false);
-            bt_stop.setEnabled(true);
-
-            // Initialize location (If there's no HackRF Device what's the point in getting permissions
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_ACCESS_LOCATION);
-            }
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location != null) {
-                tv_lat.setText(String.valueOf(location.getLatitude()));
-                tv_long.setText(String.valueOf(location.getLongitude()));
-            }
-
-        }
-        else {
-            Toast.makeText(getApplicationContext(),
-                    "No HackRF Device Available",
-                    Toast.LENGTH_SHORT).show();
+        if (running) {
+            startAnalyzer();
         }
     }
 
-    public void stop_recording(View v) {
-        hackRFSource.stopSampling();
+    public void startAnalyzer() {
+        this.stopAnalyzer();
+        int fftSize = 1024; // TODO: Not magic constant
 
-        bt_start.setEnabled(true);
-        bt_stop.setEnabled(false);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_ACCESS_LOCATION);
+        }
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        running = true;
+
+        if (hackRFSource == null) {
+            if (!this.createSource()) {
+                return;
+            }
+        }
+
+        if (!hackRFSource.isOpen()) {
+            if (!hackRFSource.open(this)){
+                Toast.makeText(MainActivity.this, "Source not available (" +
+                        hackRFSource.getName() + ")", Toast.LENGTH_LONG).show();
+                running = false;
+                return;
+            }
+            return;
+        }
+
+        scheduler = new Scheduler(fftSize, hackRFSource);
+        processingLoop = new ProcessingLoop(tv_rssi,
+                fftSize,
+                scheduler.getFftOutputQueue(),
+                scheduler.getFftInputQueue());
+
+        scheduler.start();
+        processingLoop.start();
+    }
+
+    public void stopAnalyzer() {
+        if (scheduler != null) {
+            scheduler.stopScheduler();
+        }
+        if (processingLoop != null) {
+            processingLoop.stopLoop();
+        }
+        if (scheduler != null && !scheduler.getName().equals(Thread.currentThread().getName())) {
+            try {
+                scheduler.join();
+            }
+            catch (InterruptedException e) {
+                // TODO: Log
+            }
+        }
+        if (processingLoop != null) {
+            try {
+                processingLoop.join();
+            }
+            catch(InterruptedException e) {
+                // TODO: Log
+            }
+        }
+        running = false;
+    }
+
+    public boolean createSource() {
+        hackRFSource = new HackRFSource();
+        hackRFSource.setFrequency(Long.valueOf(et_frequency.getText().toString()));
+        hackRFSource.setSampleRate(HackRFSource.MAX_SAMPLERATE);
+        hackRFSource.setVgaRxGain(HackRFSource.MAX_VGA_RX_GAIN / 2);
+        hackRFSource.setVgaTxGain(HackRFSource.MAX_VGA_TX_GAIN / 2);
+        hackRFSource.setAmplifier(false);
+        hackRFSource.setAntennaPower(false);
+        hackRFSource.setFrequencyOffset(0);
+
+        return true;
     }
 
     public void log_to_screen(LogLevel logLevel, String message) {
