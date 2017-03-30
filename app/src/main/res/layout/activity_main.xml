@@ -76,6 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/tv_lat"
         android:hint="@string/et_frequency"
+        android:text="97000000"
         android:inputType="number"/>
 
     <TextView
@@ -93,7 +94,6 @@
         app:layout_widthPercent="50%"
         app:layout_heightPercent="11%"
         android:layout_below="@id/tv_log"
-        android:onClick="start_recording"
         android:text="@string/bt_record" />
     <Button
         android:id="@+id/bt_stop"
@@ -103,7 +103,6 @@
         app:layout_heightPercent="11%"
         android:layout_below="@id/tv_log"
         android:layout_toEndOf="@id/bt_start"
-        android:onClick="stop_recording"
         android:text="@string/bt_stop" />
 
 </android.support.percent.PercentRelativeLayout>
