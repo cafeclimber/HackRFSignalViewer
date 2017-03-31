@@ -37,11 +37,13 @@ public class MainActivity extends AppCompatActivity {
     private Button   bt_start = null;
     private Button   bt_stop = null;
 
+    private HackRFInterface source = null;
+
     private boolean running = false;
 
     private static final int MY_PERMISSIONS_ACCESS_LOCATION = 0;
 
-    public enum LogLevel {
+    private enum LogLevel {
         INFO, WARNING, ERROR,
     }
 
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
         bt_start = (Button) findViewById(R.id.bt_start);
         bt_stop = (Button) findViewById(R.id.bt_stop);
+
+        running = savedInstanceState.getBoolean("save_state_running");
     }
 
     /**
@@ -80,7 +84,56 @@ public class MainActivity extends AppCompatActivity {
                     MY_PERMISSIONS_ACCESS_LOCATION);
         }
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (running)
+            startAnalyzer();
+        savedInstanceState = null;
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        boolean runningSaved = running;
+        stopAnalyzer();
+        running = runningSaved;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean("save_state_running", running);
+    }
+
+    public boolean createAndOpenSource() {
+        long frequency;
+        int sampleRate;
+
+        source = new HackRFInterface();
+        source.setFrequency(Long.valueOf(et_frequency.getText().toString()));
+        source.setSampleRate(HackRFInterface.MAX_SAMPLE_RATE);
+        source.setVgaRxGain(HackRFInterface.MAX_VGA_RX_GAIN / 2);
+        source.setLnaGain(HackRFInterface.MAX_LNA_GAIN / 2);
+        source.setAmplifier(false);
+        source.setAntennaPower(false);
+
+        source.open(this);
+        return source.isOpen();
+    }
+
+    public void startAnalyzer() {
+        this.stopAnalyzer();
+        int fftSize = 1024; // TODO: Not magic constant
+
+        running = true;
+
+        if (source == null) {
+            if (!this.createAndOpenSource()) {
+                logToScreen(LogLevel.ERROR, "Failed to open HackRF");
+                return;
+            }
+        }
+    }
+
+    public void stopAnalyzer() {}
 
     /**
      * Prints to onscreen log

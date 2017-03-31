@@ -40,6 +40,7 @@ public class HackRFInterface implements HackrfCallbackInterface{
     private Hackrf hackrf = null;
     private String name = null;
     private ArrayBlockingQueue<byte[]> queue = null;
+    private IQConverter iqConverter = null;
     private long frequency = 0;
     private int sampleRate = 0;
     private int basebandFilterWidth = 0;
@@ -64,6 +65,7 @@ public class HackRFInterface implements HackrfCallbackInterface{
 
     public HackRFInterface() {
         // TODO: Initialize hackRF on construction
+        iqConverter = new IQConverter();
     }
 
     @Override
@@ -324,6 +326,16 @@ public class HackRFInterface implements HackrfCallbackInterface{
                 + e.getMessage());
             }
         }
+    }
+
+    public int fillPacketIntoSamplePacket(byte[] packet, SamplePacket samplePacket) {
+        return this.iqConverter.fillPacketIntoSamplePacket(packet, samplePacket);
+    }
+
+    public int mixPacketIntoSamplePakcket(byte[] packet,
+                                          SamplePacket samplePacket,
+                                          long channelFrequency) {
+        return this.iqConverter.mixPacketIntoSamplePacket(packet, samplePacket, channelFrequency);
     }
 
     public void flushQueue() {
