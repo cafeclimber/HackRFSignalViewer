@@ -45,14 +45,15 @@ public class MainActivity extends AppCompatActivity {
         INFO, WARNING, ERROR,
     }
 
+    /**
+     * Gets references to GUI elements
+     * @param savedInstanceState State to restore from
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         this.savedInstanceState = savedInstanceState;
-
-        String extStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
-        String defaultFile = "HackRF/hackrf_android.iq";
 
         tv_rssi = (TextView) findViewById(R.id.tv_rssi);
         tv_lat  = (TextView) findViewById(R.id.tv_lat);
@@ -65,11 +66,27 @@ public class MainActivity extends AppCompatActivity {
         bt_stop = (Button) findViewById(R.id.bt_stop);
     }
 
+    /**
+     * Checks for location permissions on start.
+     */
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_ACCESS_LOCATION);
+        }
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
     }
 
+    /**
+     * Prints to onscreen log
+     * @param logLevel Prepends message with appropriate Log level
+     * @param message String to print to log
+     */
     public void logToScreen(LogLevel logLevel, String message) {
         switch (logLevel) {
             case INFO:
