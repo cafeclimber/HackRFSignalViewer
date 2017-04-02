@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private Button   bt_stop = null;
 
     private HackRFInterface source = null;
+    private Scheduler scheduler = null;
 
     private boolean running = false;
 
@@ -130,7 +131,11 @@ public class MainActivity extends AppCompatActivity {
                 logToScreen(LogLevel.ERROR, "Failed to open HackRF");
                 return;
             }
+            return;
         }
+
+        scheduler = new Scheduler(fftSize, source);
+
     }
 
     public void stopAnalyzer() {}
