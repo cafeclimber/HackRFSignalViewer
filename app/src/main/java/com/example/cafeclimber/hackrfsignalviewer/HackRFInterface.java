@@ -120,6 +120,8 @@ public class HackRFInterface implements HackrfCallbackInterface{
                 Log.e(LOGTAG, "setFrequency: Error while setting frequency: " + e.getMessage());
             }
         }
+        Log.d(LOGTAG, "setFrequency: setting frequency to " + frequency);
+        this.frequency = frequency;
     }
 
     public int getSampleRate() {

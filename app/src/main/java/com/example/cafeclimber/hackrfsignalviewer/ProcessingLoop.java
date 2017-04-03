@@ -6,10 +6,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by cafeclimber on 4/1/17.
- */
-
 public class ProcessingLoop extends Thread {
     private int fftSize = 0;
     private int frameRate = 10;
@@ -58,6 +54,10 @@ public class ProcessingLoop extends Thread {
         return !this.stopRequested;
     }
 
+    public void setFrameRate(int frameRate) {
+        this.frameRate = frameRate;
+    }
+
     @Override
     public void run() {
         Log.i(LOGTAG, "Processing loop started. (Thread: " + this.getName() + ")");
@@ -82,9 +82,6 @@ public class ProcessingLoop extends Thread {
                 break;
             }
 
-            frequency = samples.getFrequency();
-            sampleRate = samples.getSampleRate();
-
             this.doProcessing(samples);
 
             returnQueue.offer(samples);
@@ -103,7 +100,7 @@ public class ProcessingLoop extends Thread {
         Log.i(LOGTAG, "Processing loop stopped. (Thread: " + this.getName() + ")");
     }
 
-    public void doProcessing(SamplePacket samples) {
+    private void doProcessing(SamplePacket samples) {
         float[] re = samples.re();
         float[] im = samples.im();
 

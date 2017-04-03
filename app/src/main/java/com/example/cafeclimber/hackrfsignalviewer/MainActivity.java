@@ -39,10 +39,12 @@ public class MainActivity extends AppCompatActivity {
 
     private HackRFInterface source = null;
     private Scheduler scheduler = null;
+    private ProcessingLoop processingLoop = null;
 
     private boolean running = false;
 
     private static final int MY_PERMISSIONS_ACCESS_LOCATION = 0;
+    private static final String LOGTAG = "MainActivity";
 
     private enum LogLevel {
         INFO, WARNING, ERROR,
@@ -68,7 +70,11 @@ public class MainActivity extends AppCompatActivity {
         bt_start = (Button) findViewById(R.id.bt_start);
         bt_stop = (Button) findViewById(R.id.bt_stop);
 
-        running = savedInstanceState.getBoolean("save_state_running");
+        if (savedInstanceState != null) {
+            running = savedInstanceState.getBoolean("save_state_running");
+        } else {
+            running = false;
+        }
     }
 
     /**
@@ -85,6 +91,19 @@ public class MainActivity extends AppCompatActivity {
                     MY_PERMISSIONS_ACCESS_LOCATION);
         }
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        bt_start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startAnalyzer();
+            }
+        });
+        bt_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopAnalyzer();
+            }
+        });
 
         if (running)
             startAnalyzer();
@@ -104,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putBoolean("save_state_running", running);
     }
 
-    public boolean createAndOpenSource() {
+    public boolean createSource() {
         long frequency;
         int sampleRate;
 
@@ -115,30 +134,76 @@ public class MainActivity extends AppCompatActivity {
         source.setLnaGain(HackRFInterface.MAX_LNA_GAIN / 2);
         source.setAmplifier(false);
         source.setAntennaPower(false);
+        return true;
+    }
 
-        source.open(this);
-        return source.isOpen();
+    public boolean openSource() {
+        if (source != null)
+            return source.open(this);
+        else {
+            Log.e(LOGTAG, "openSource: sourceType is HACKRF_SOURCE, but source is null or of other type.");
+            return false;
+        }
     }
 
     public void startAnalyzer() {
         this.stopAnalyzer();
         int fftSize = 1024; // TODO: Not magic constant
+        int frameRate = 1; // TODO: Not magic constant
 
         running = true;
 
         if (source == null) {
-            if (!this.createAndOpenSource()) {
+            if (!this.createSource()) {
                 logToScreen(LogLevel.ERROR, "Failed to open HackRF");
                 return;
             }
             return;
         }
+        if (!source.isOpen()) {
+            if (!openSource()) {
+                logToScreen(LogLevel.ERROR, "Failed to open HackRF");
+                running = false;
+                return;
+            }
+        }
 
         scheduler = new Scheduler(fftSize, source);
+        processingLoop = new ProcessingLoop(fftSize,
+                scheduler.getFftInputQueue(),
+                scheduler.getFftOutputQueue());
 
+        processingLoop.setFrameRate(frameRate);
+
+        logToScreen(LogLevel.INFO, "Starting analyzer");
+
+        scheduler.start();
+        processingLoop.start();
     }
 
-    public void stopAnalyzer() {}
+    public void stopAnalyzer() {
+        if (scheduler != null)
+            scheduler.stopScheduler();
+        if (processingLoop != null)
+            processingLoop.stopLoop();
+        if (scheduler != null && !scheduler.getName().equals(Thread.currentThread().getName())) {
+            try {
+                scheduler.join();
+            } catch (InterruptedException e) {
+                Log.e(LOGTAG, "stopAnaylzer: Error while stopping scheduler");
+            }
+        }
+        if (processingLoop != null) {
+            try {
+                processingLoop.join();
+            } catch (InterruptedException e) {
+                Log.e(LOGTAG, "stopAnalyzer: Error while stopping processing loop");
+            }
+        }
+        logToScreen(LogLevel.INFO, "Stopping analyzer");
+        running = false;
+
+    }
 
     /**
      * Prints to onscreen log
